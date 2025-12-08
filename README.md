@@ -83,8 +83,26 @@ docker compose up -d
 ### Multi-Agent AI System
 Instead of one generic chatbot, implemented 6 specialized agents (Help, Technical, Personal, Background, Interview, Router) for higher quality, contextually relevant responses.
 
-### Cost Optimization
-Switched from local Ollama (4GB RAM, $36/month t2.medium) to Groq API, enabling deployment on $10/month t2.micro - **70% cost savings**.
+### LLM Deployment: Cloud API vs Self-Hosted
+
+**Decision:** Use Groq Cloud API instead of self-hosted Ollama
+
+**Context:** Initially deployed with Ollama running llama3.2 locally, but encountered resource constraints.
+
+**Considerations:**
+- **Performance:** Groq delivers 300+ tokens/sec vs ~50 tokens/sec with local inference
+- **Model Quality:** Access to llama-3.3-70b (70B parameters) vs llama3.2 (3B parameters)
+- **Infrastructure:** Groq enables t2.micro (1GB RAM) vs requiring t2.medium (4GB RAM)
+- **Maintenance:** Managed service eliminates model updates and optimization
+
+**Trade-offs:**
+- ✅ Better model quality and faster responses
+- ✅ Lower infrastructure costs (~70% reduction)
+- ✅ Free tier sufficient for portfolio use case (30 req/min)
+- ⚠️ External dependency (mitigated with error handling)
+- ⚠️ Rate limits (acceptable for demo traffic)
+
+**Why This Matters:** Demonstrates ability to evaluate trade-offs between self-hosted and managed services, optimize for use case requirements, and make pragmatic architectural decisions.
 
 ### Security-First
 - Environment-based secrets (never hardcoded)
