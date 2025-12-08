@@ -1,0 +1,20 @@
+{
+  "name": "resume-dashboard",
+  "version": "1.0.0",
+  "description": "Token-Gated Interactive Resume Dashboard",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && python run.py",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && python run.py",
+    "start:frontend": "cd frontend && npm run start",
+    "install:all": "npm install && cd frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "author": "J M",
+  "license": "MIT"
+}

@@ -1,0 +1,47 @@
+[project]
+name = "resume-dashboard"
+version = "0.1.0"
+description = "Token-Gated Interactive Resume Dashboard"
+authors = [{name = "J M", email = "jm@example.com"}]
+requires-python = ">=3.8"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.23.0",
+    "langchain>=0.1.0",
+    "langgraph>=0.0.20",
+    "openai>=1.0.0",
+    "pandas>=2.0.0",
+    "sqlalchemy>=2.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.24.0",
+    "opencv-python>=4.8.0",
+    "mediapipe>=0.10.0",
+    "aiosqlite>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "black>=23.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

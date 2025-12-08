@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resume-dashboard-backend
+    ports:
+      - "9001:9001"
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONUNBUFFERED=1
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://thisisjia.com,http://localhost:3000}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - resume-network
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${DOMAIN_URL:-https://thisisjia.com}
+    container_name: resume-dashboard-frontend
+    ports:
+      - "9002:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${DOMAIN_URL:-https://thisisjia.com}
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - resume-network
+
+  # Optional: Nginx Reverse Proxy (for production)
+  nginx:
+    image: nginx:alpine
+    container_name: resume-dashboard-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    networks:
+      - resume-network
+    profiles:
+      - production
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot:latest
+    container_name: resume-dashboard-certbot
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    profiles:
+      - production
+
+volumes:
+  backend_data:
+    driver: local
+  certbot_www:
+    driver: local
+
+networks:
+  resume-network:
+    driver: bridge

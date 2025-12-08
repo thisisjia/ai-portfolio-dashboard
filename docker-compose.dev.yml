@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Backend Service (Development)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resume-dashboard-backend-dev
+    ports:
+      - "9001:9001"
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=development
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend:/app
+      - backend_data:/app/data
+    restart: unless-stopped
+    networks:
+      - resume-network
+    command: ["python", "-m", "src.solutions.resume_dashboard.main"]
+
+  # Frontend Service (Development)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: resume-dashboard-frontend-dev
+    ports:
+      - "9002:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:9001
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - resume-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  backend_data:
+    driver: local
+
+networks:
+  resume-network:
+    driver: bridge
