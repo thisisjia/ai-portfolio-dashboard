@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Header
 from typing import Optional
 from datetime import datetime
 import os
+import aiosqlite
 from ..utils.database import DatabaseManager
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -26,20 +27,22 @@ async def get_analytics(authorization: Optional[str] = Header(None)):
     await db.initialize()
 
     try:
-        # Query all tokens with access info
-        query = """
-        SELECT
-            company,
-            company_name,
-            last_accessed,
-            created_at,
-            access_count
-        FROM tokens
-        WHERE company IS NOT NULL
-        ORDER BY last_accessed DESC
-        """
-
-        result = await db.execute_query(query)
+        # Query all tokens with access info and count visits
+        async with aiosqlite.connect(db.db_path) as conn:
+            cursor = await conn.execute("""
+                SELECT
+                    t.company,
+                    t.company_name,
+                    t.last_accessed,
+                    t.created_at,
+                    COUNT(a.id) as access_count
+                FROM token_access t
+                LEFT JOIN access_logs a ON t.token_hash = a.token_hash
+                WHERE t.company IS NOT NULL
+                GROUP BY t.token_hash, t.company, t.company_name, t.last_accessed, t.created_at
+                ORDER BY t.last_accessed DESC
+            """)
+            result = await cursor.fetchall()
 
         visitors = []
         for row in result:
@@ -48,7 +51,7 @@ async def get_analytics(authorization: Optional[str] = Header(None)):
                 "company_name": row[1] or row[0] or "Unknown",
                 "last_accessed": row[2],
                 "first_accessed": row[3],
-                "visit_count": row[4] or 1
+                "visit_count": row[4] if row[4] > 0 else 1
             })
 
         # Generate HTML response
