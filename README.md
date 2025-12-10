@@ -214,13 +214,7 @@ npm run type-check
 - 🌐 [thisisjia.com](https://thisisjia.com)
 - 💼 [LinkedIn](https://www.linkedin.com/in/mjiajia/)
 - 🐙 [GitHub](https://github.com/thisisjia)
-- 📧 m.jiajia@gmail.com
 
----
-
-## 📝 License
-
-MIT License - Feel free to use as reference for your own projects.
 
 ---
 
