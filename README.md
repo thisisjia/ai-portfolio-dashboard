@@ -1,37 +1,61 @@
-# 🎯 Token-Gated Interactive Resume Dashboard
+# 🎯 AI Portfolio Dashboard
 
-A full-stack AI-powered portfolio platform with multi-agent chat, live SQL demonstrations, and visitor analytics. Built to showcase modern software engineering practices.
+**A production-grade, token-gated portfolio platform with multi-agent AI chat, live SQL demonstrations, and visitor analytics.**
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-thisisjia.com-blue?style=for-the-badge)](https://thisisjia.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
+> **Live Demo:** [thisisjia.com](https://thisisjia.com)
+
 ---
 
 ## ✨ Key Features
 
-- **🤖 Multi-Agent AI Chat** - 6 specialized LangChain agents with intelligent routing and confidence scoring
-- **💾 Live SQL Demos** - Interactive database queries with syntax highlighting on real resume data
-- **🔐 Token Authentication** - Company-specific access with domain tracking and SHA-256 hashing
-- **📊 Admin Analytics** - Visitor tracking dashboard with access metrics and insights
-- **⚡ Production Ready** - Dockerized deployment on AWS EC2 with Nginx and SSL
+### 🤖 Multi-Agent AI Chat
+- **6 specialized LangGraph agents** for different question types
+- Intelligent intent routing with confidence scoring
+- Real-time streaming responses via Server-Sent Events (SSE)
+- Context-aware conversations about technical skills, background, and projects
+
+### 💾 Interactive SQL Demonstrations
+- Live queries on real resume data (projects, skills, experience)
+- Syntax-highlighted SQL with execution results
+- Complex query examples (JOINs, aggregations, window functions)
+
+### 📊 Admin Analytics Dashboard
+- **Real-time visitor tracking** by company domain and access patterns
+- Visit frequency, timestamps, and engagement metrics
+- Secure bearer token authentication for admin-only access
+- Professional data visualizations with trend analysis
+
+### 🔐 Token-Based Access Control
+- Company-specific authentication tokens
+- SHA-256 hashing for secure token storage
+- Domain validation and logging
+- Session management with analytics integration
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Internet → Cloudflare → Nginx (SSL) → Frontend (Next.js) + Backend (FastAPI) → SQLite → Groq API
+Internet → Nginx (SSL) → Frontend (Next.js :3000)
+                      ↓
+                   Backend (FastAPI :9001)
+                      ↓
+                   SQLite Database
 ```
 
-**Tech Stack:**
-- **Backend:** Python, FastAPI, LangChain, Groq API (llama-3.3-70b)
-- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS
-- **Infrastructure:** Docker, Nginx, AWS EC2, Let's Encrypt
-
-📖 **[Read full architecture decisions →](ARCHITECTURE.md)**
+**Stack:**
+- **Frontend:** Next.js 15, React 19, TypeScript, TailwindCSS
+- **Backend:** FastAPI, Python 3.12, LangChain/LangGraph
+- **AI:** Groq API (llama-3.3-70b-versatile)
+- **Database:** SQLite with async (aiosqlite)
+- **Deploy:** Docker Compose, Nginx, AWS EC2
 
 ---
 
@@ -39,102 +63,129 @@ Internet → Cloudflare → Nginx (SSL) → Frontend (Next.js) + Backend (FastAP
 
 ### Prerequisites
 - Docker & Docker Compose
-- [Groq API Key](https://console.groq.com/keys) (free tier available)
+- Groq API Key ([free signup](https://console.groq.com))
 
 ### Setup
 
 ```bash
-# 1. Clone and configure
-git clone https://github.com/yourusername/resume-dashboard.git
-cd resume-dashboard
+# 1. Clone repository
+git clone https://github.com/thisisjia/ai-portfolio-dashboard.git
+cd ai-portfolio-dashboard
+
+# 2. Configure environment
 cp .env.example .env
+# Edit .env with your GROQ_API_KEY and other settings
 
-# 2. Edit .env with your values
-# GROQ_API_KEY=your_key_here
-# ADMIN_TOKEN=your_secure_token
-
-# 3. Run
+# 3. Start services
 docker compose up -d
 
-# 4. Access at http://localhost:3000
+# 4. Access
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:9001
+# API Docs: http://localhost:9001/docs
+# Admin: http://localhost:9001/admin/analytics (requires Bearer token)
 ```
-
-### API Documentation
-- Interactive docs: `http://localhost:9001/docs`
-- Admin analytics: `http://localhost:9001/admin/analytics` (requires Bearer token)
-
----
-
-## 🎯 What This Project Demonstrates
-
-| Skill Area | Implementation |
-|------------|----------------|
-| **AI/ML** | Multi-agent LLM system with LangChain, prompt engineering, confidence-based routing |
-| **Backend** | Async FastAPI, RESTful API design, SSE streaming, database design |
-| **Frontend** | Next.js 15 with App Router, TypeScript, responsive UI, real-time updates |
-| **DevOps** | Docker multi-stage builds, Nginx reverse proxy, AWS deployment, SSL/TLS |
-| **Security** | Token auth, secret management, CORS, input validation, penetration testing awareness |
-| **Architecture** | Microservices, separation of concerns, scalability patterns, cost optimization |
-
----
-
-## 💡 Design Highlights
-
-### Multi-Agent AI System
-Instead of one generic chatbot, implemented 6 specialized agents (Help, Technical, Personal, Background, Interview, Router) for higher quality, contextually relevant responses.
-
-### LLM Deployment: Cloud API vs Self-Hosted
-
-**Decision:** Use Groq Cloud API instead of self-hosted Ollama
-
-**Context:** Initially deployed with Ollama running llama3.2 locally, but encountered resource constraints.
-
-**Considerations:**
-- **Performance:** Groq delivers 300+ tokens/sec vs ~50 tokens/sec with local inference
-- **Model Quality:** Access to llama-3.3-70b (70B parameters) vs llama3.2 (3B parameters)
-- **Infrastructure:** Groq enables t2.micro (1GB RAM) vs requiring t2.medium (4GB RAM)
-- **Maintenance:** Managed service eliminates model updates and optimization
-
-**Trade-offs:**
-- ✅ Better model quality and faster responses
-- ✅ Lower infrastructure costs (~70% reduction)
-- ✅ Free tier sufficient for portfolio use case (30 req/min)
-- ⚠️ External dependency (mitigated with error handling)
-- ⚠️ Rate limits (acceptable for demo traffic)
-
-**Why This Matters:** Demonstrates ability to evaluate trade-offs between self-hosted and managed services, optimize for use case requirements, and make pragmatic architectural decisions.
-
-### Security-First
-- Environment-based secrets (never hardcoded)
-- Token hashing before storage
-- Admin dashboard with bearer token protection
-- HTTPS-only with automated cert renewal
-
-### Production-Ready Patterns
-- Separate Docker containers for isolation and scaling
-- Async database operations
-- Response streaming for better UX
-- Comprehensive error handling
 
 ---
 
 ## 📁 Project Structure
 
 ```
-resume-dashboard/
-├── backend/src/solutions/resume_dashboard/
-│   ├── agents/          # 6 specialized AI agents
-│   ├── routes/          # API endpoints (chat, SQL demos, admin)
-│   ├── nodes/           # LangGraph workflow components
-│   └── utils/           # Database, config, validators
+├── backend/
+│   ├── src/solutions/resume_dashboard/
+│   │   ├── agents/        # 6 specialized LangGraph agents
+│   │   ├── routes/        # API endpoints (chat, sql_demo, admin)
+│   │   ├── nodes/         # LangGraph workflow nodes
+│   │   ├── utils/         # Database & config
+│   │   └── main.py        # FastAPI app
+│   └── Dockerfile
 ├── frontend/
-│   ├── app/             # Next.js pages
-│   ├── components/      # React components
-│   └── lib/             # API client and utilities
+│   ├── app/               # Next.js pages
+│   ├── components/        # React components
+│   └── Dockerfile
+├── nginx/
+│   └── nginx.conf         # Reverse proxy config
 ├── docker-compose.yml
-├── ARCHITECTURE.md      # Detailed technical decisions
-└── README.md
+└── .env.example
 ```
+
+---
+
+## 🔐 Security Features
+
+- ✅ Token hashing (SHA-256)
+- ✅ CORS restrictions
+- ✅ HTTPS with Let's Encrypt
+- ✅ Environment-based secret management
+- ✅ Admin dashboard with bearer token auth
+- ✅ IP logging for security audit
+
+---
+
+## 🌐 Deployment
+
+**Recommended:** AWS EC2 t3.small (2GB RAM minimum for builds)
+
+```bash
+# On local machine - build frontend for AMD64
+docker buildx build --platform linux/amd64 \
+  --build-arg NEXT_PUBLIC_API_URL=https://yourdomain.com \
+  -t frontend:prod ./frontend
+
+# Stream to server
+docker save frontend:prod | ssh user@server docker load
+
+# On server
+docker compose --profile production up -d
+```
+
+---
+
+## 📊 API Examples
+
+### Authentication
+```bash
+curl -X POST https://thisisjia.com/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"token":"your-token","company_domain":"company.com"}'
+```
+
+### Chat
+```bash
+curl -X POST https://thisisjia.com/api/chat/message \
+  -H "Content-Type: application/json" \
+  -d '{"message":"What are your technical skills?","session_id":"uuid","token":"your-token"}'
+```
+
+### Admin Analytics
+```bash
+curl -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  https://thisisjia.com/admin/analytics
+```
+
+Full API docs: [thisisjia.com/docs](https://thisisjia.com/docs)
+
+---
+
+## 🎯 What This Demonstrates
+
+**Full-Stack Development:**
+- Async Python backend (FastAPI)
+- Modern React/TypeScript frontend
+- Docker multi-container orchestration
+- Production deployment (AWS, Nginx, SSL)
+
+**AI/ML Engineering:**
+- Multi-agent LangGraph architecture
+- LLM prompt engineering
+- Intent classification & routing
+- Streaming responses
+
+**System Design:**
+- Token-based authentication
+- Visitor analytics pipeline
+- Database schema design
+- API architecture
 
 ---
 
@@ -146,69 +197,31 @@ cd backend
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 python -m solutions.resume_dashboard
+pytest
 
 # Frontend
 cd frontend
 npm install
 npm run dev
-
-# Tests
-pytest backend/tests/
+npm run type-check
 ```
-
----
-
-## 🌐 Deployment
-
-Deployed on **AWS EC2 t2.micro** (free tier eligible) with Docker, Nginx, and Let's Encrypt SSL.
-
-**Note:** Build Next.js frontend locally for t2.micro instances (1GB RAM insufficient for builds):
-```bash
-docker build --platform linux/amd64 \
-  --build-arg NEXT_PUBLIC_API_URL=https://yourdomain.com \
-  -t resume-frontend ./frontend
-```
-
-Full deployment guide in [ARCHITECTURE.md](ARCHITECTURE.md#deployment-strategy)
-
----
-
-## 📈 Performance & Scale
-
-- **API Response:** <200ms average
-- **LLM First Token:** <2s (streaming)
-- **Current Load:** Handles 1000+ visitors/month on t2.micro
-- **Scalability:** Ready for horizontal scaling with load balancer
-
----
-
-## 🔒 Security
-
-✅ Environment variables for secrets
-✅ SHA-256 token hashing
-✅ CORS restrictions
-✅ HTTPS only
-✅ IP logging for audit
-✅ Input validation & parameterized queries
-
----
-
-## 📝 License
-
-Portfolio demonstration project. Feel free to reference for your own projects.
 
 ---
 
 ## 📧 Contact
 
-**Looking for a full-stack engineer?**
-
-- 📧 Email: [your-email]
-- 💼 LinkedIn: [your-linkedin]
-- 🌐 Live Demo: [Contact for access token]
+**Jiajia M.**
+- 🌐 [thisisjia.com](https://thisisjia.com)
+- 💼 [LinkedIn](https://www.linkedin.com/in/mjiajia/)
+- 🐙 [GitHub](https://github.com/thisisjia)
+- 📧 m.jiajia@gmail.com
 
 ---
 
-**Tech Stack:** Python • FastAPI • LangChain • Next.js • TypeScript • Docker • AWS • PostgreSQL-ready
+## 📝 License
 
-**Built to demonstrate:** Full-stack development • AI/ML integration • Cloud architecture • Production best practices
+MIT License - Feel free to use as reference for your own projects.
+
+---
+
+**Built to showcase modern full-stack AI engineering** 🚀
