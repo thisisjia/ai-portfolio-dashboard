@@ -35,7 +35,7 @@ export default function AdminPage() {
     setError('');
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://thisisjia.com';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
       const response = await fetch(`${apiUrl}/admin/analytics`, {
         headers: {
           'Authorization': `Bearer ${token}`,
