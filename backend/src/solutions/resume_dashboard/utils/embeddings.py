@@ -1,4 +1,39 @@
-"""Embedding and RAG utilities for semantic search using Ollama."""
+"""Embedding and RAG utilities for semantic search using Ollama.
+
+NOTE: This module is NOT currently used in production.
+
+ORIGINAL DESIGN:
+    Hybrid search with embeddings + BM25 + RRF:
+    - Semantic search via cosine similarity on Ollama embeddings
+    - BM25-like keyword matching for exact term matching
+    - Reciprocal Rank Fusion (RRF) for combining results
+
+WHY NOT DEPLOYED:
+    Memory constraints on AWS t2.micro (1GB total RAM):
+    - nomic-embed-text model: ~500MB
+    - Ollama service overhead: ~300MB
+    - FastAPI + SQLite + OS: ~400MB
+    Total required: ~1.2GB > 1GB available
+
+    Even lighter alternatives (EmbeddingGemma-300M <200MB, all-MiniLM-L6-v2 43MB)
+    still require embedding infrastructure exceeding free tier constraints.
+
+CURRENT APPROACH:
+    Direct context injection to Groq LLM (llama-3.3-70b-versatile).
+    Single resume (~5KB) fits in 8K context window.
+    Multi-agent routing handles query classification without embeddings.
+
+TRADE-OFFS:
+    - Works for current scale (single document)
+    - Not scalable to 100+ documents without RAG
+    - Forced by memory constraints, acceptable for MVP/demo
+
+KEPT AS REFERENCE:
+    Demonstrates knowledge of RAG, vector search, and hybrid retrieval.
+    Would be activated if scaling up (requires t2.medium+).
+
+See ARCHITECTURE.md section "No RAG/Vector Search" for detailed analysis.
+"""
 
 import numpy as np
 import aiosqlite

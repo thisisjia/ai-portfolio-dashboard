@@ -128,7 +128,69 @@ class RouterAgent(BaseAgent):
 - External dependency (mitigated by error handling)
 - Rate limits (acceptable for portfolio demo)
 
-### 3. Token-Based Authentication
+**Alternative Considered: Qwen (smallest model)**
+- Tested Qwen as minimal local LLM
+- Still required significant disk space for model download
+- AWS free tier constraints made local hosting impractical
+
+### 3. No RAG/Vector Search (Memory Constraints)
+
+**Original Design:** Hybrid search with embeddings + BM25 + RRF
+
+**Planned Implementation:**
+```python
+# Implemented in embeddings.py (kept as reference)
+- Ollama embeddings with nomic-embed-text (500MB)
+- Cosine similarity for semantic search
+- BM25-like keyword matching for exact matches
+- Reciprocal Rank Fusion (RRF) for result merging
+- Hybrid scoring: semantic_weight * cosine + keyword_weight * BM25
+```
+
+**Why Not Deployed:**
+
+**Memory Breakdown (AWS t2.micro - 1GB total):**
+```
+nomic-embed-text model:     ~500 MB
+Ollama service overhead:    ~300 MB
+FastAPI + dependencies:     ~200 MB
+SQLite + OS services:       ~200 MB
+-------------------------------------------
+Required:                   ~1.2 GB
+Available:                   1.0 GB  ❌
+```
+
+**Alternatives Evaluated:**
+
+| Model | Memory | Why Not Used |
+|-------|--------|-------------|
+| **EmbeddingGemma-300M** (quantized) | <200MB | Still need Ollama (~300MB) = ~500MB total |
+| **all-MiniLM-L6-v2** | 43MB | Need sentence-transformers library (~200MB) |
+| **nomic-embed-text** | 500MB | Original choice, too large |
+| **mxbai-embed-large** | 1.2GB | Best quality, but exceeds t2.micro entirely |
+
+Even the smallest viable option (EmbeddingGemma + infrastructure) would consume ~700-800MB, leaving minimal headroom for traffic spikes or OS overhead.
+
+**Final Decision:**
+- Use **direct context injection** - entire resume (~5KB) fits in LLM context window
+- Keep `embeddings.py` as reference implementation (demonstrates RAG expertise)
+- Multi-agent routing provides intelligent query handling without embeddings
+- **Saves ~$27/month** by staying on t2.micro vs t2.medium
+
+**Trade-Offs Accepted:**
+- Works for current scale: Single resume easily fits in context
+- Not scalable: Cannot handle 100+ documents without RAG
+- No semantic search capability: Relies on LLM's attention mechanism only
+- Forced by memory constraints: No choice for AWS free tier MVP
+- Acceptable for portfolio demo: Single-user use case doesn't require document retrieval
+
+**When RAG Would Be Required:**
+- Multiple resumes (multi-tenant system)
+- Large document library (100+ items exceeding context window)
+- External knowledge base integration
+- Would necessitate upgrade to t2.medium+ for embedding infrastructure
+
+### 4. Token-Based Authentication
 
 **Why not OAuth/Social Login?**
 - Portfolio use case: controlled access for recruiters
