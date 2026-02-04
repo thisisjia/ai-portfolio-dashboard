@@ -26,4 +26,4 @@ ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1
 
 # Run the application
-CMD ["python", "-m", "src.solutions.resume_dashboard.main"]
+CMD ["python", "-m", "src.main"]

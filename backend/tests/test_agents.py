@@ -2,10 +2,10 @@
 
 import pytest
 
-from solutions.resume_dashboard.agents.technical import TechnicalAgent
-from solutions.resume_dashboard.agents.personal import PersonalAgent
-from solutions.resume_dashboard.agents.background import BackgroundAgent
-from solutions.resume_dashboard.agents.base import ConversationState, AgentResponse
+from src.agents.technical import TechnicalAgent
+from src.agents.personal import PersonalAgent
+from src.agents.background import BackgroundAgent
+from src.agents.base import ConversationState, AgentResponse
 
 
 class TestTechnicalAgent:

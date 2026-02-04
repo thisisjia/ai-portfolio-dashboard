@@ -4,8 +4,8 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from langchain_core.messages import AIMessage
 
-from solutions.resume_dashboard.agents.router import RouterAgent
-from solutions.resume_dashboard.agents.base import ConversationState
+from src.agents.router import RouterAgent
+from src.agents.base import ConversationState
 
 
 class TestRouterIntegration:

@@ -4,10 +4,10 @@ import pytest
 from unittest.mock import patch
 from langchain_core.messages import AIMessage
 
-from solutions.resume_dashboard.agents.technical import TechnicalAgent
-from solutions.resume_dashboard.agents.personal import PersonalAgent
-from solutions.resume_dashboard.agents.interview import InterviewAgent
-from solutions.resume_dashboard.agents.base import ConversationState, AgentResponse
+from src.agents.technical import TechnicalAgent
+from src.agents.personal import PersonalAgent
+from src.agents.interview import InterviewAgent
+from src.agents.base import ConversationState, AgentResponse
 
 
 class TestTechnicalAgentIntegration:
