@@ -569,17 +569,3 @@ async def dashboard(session: str = None):
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "version": "0.1.0"}
-
-
-def main():
-    """Run the application."""
-    uvicorn.run(
-        "src.solutions.resume_dashboard.main:app",
-        host="0.0.0.0",
-        port=9001,
-        reload=True
-    )
-
-
-if __name__ == "__main__":
-    main()

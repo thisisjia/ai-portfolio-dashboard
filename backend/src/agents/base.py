@@ -1,16 +1,15 @@
 """Base agent class and shared utilities for the multi-agent system."""
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
-from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-import json
-from pathlib import Path
+import os
 
 # Import database queries for accurate resume data
 from ..utils.resume_queries import get_resume_queries
+from .prompt_config import AgentRole, DEFAULT_MODEL, AGENT_TEMPERATURES
 
 
 class AgentResponse(BaseModel):
@@ -34,16 +33,29 @@ class ConversationState(BaseModel):
 
 class BaseAgent(ABC):
     """Base class for all agents in the multi-agent system."""
-    
+
     def __init__(
         self,
         name: str,
-        model_name: str = "llama-3.3-70b-versatile",
-        temperature: float = 0.7,
+        role: Optional[AgentRole] = None,
+        model_name: Optional[str] = None,
+        temperature: Optional[float] = None,
         resume_data: Optional[Dict] = None
     ):
         self.name = name
-        import os
+        self.role = role
+
+        # Get temperature from config if not specified
+        if temperature is None and role is not None:
+            temperature = AGENT_TEMPERATURES.get(role, 0.7)
+        elif temperature is None:
+            temperature = 0.7
+
+        # Get model from config if not specified
+        if model_name is None:
+            model_name = DEFAULT_MODEL
+
+        # Initialize LLM
         groq_api_key = os.getenv("GROQ_API_KEY")
         if not groq_api_key:
             raise ValueError("GROQ_API_KEY environment variable not set")
@@ -54,7 +66,6 @@ class BaseAgent(ABC):
             groq_api_key=groq_api_key
         )
         self.resume_data = resume_data or self._load_resume_data()
-        self.prompt_template = self._create_prompt_template()
     
     def _load_resume_data(self) -> Dict:
         """Load resume data from database for accuracy."""
@@ -131,42 +142,7 @@ class BaseAgent(ABC):
                 "values": ["Code quality", "User experience", "Continuous learning"]
             }
         }
-    
-    @abstractmethod
-    def _create_prompt_template(self) -> PromptTemplate:
-        """Create the prompt template for this agent."""
-        pass
-    
-    @abstractmethod
-    def _get_system_prompt(self) -> str:
-        """Get the system prompt for this agent."""
-        pass
-    
-    def process(
-        self,
-        message: str,
-        conversation_state: ConversationState
-    ) -> AgentResponse:
-        """Process a message and generate a response."""
-        context = self._build_context(conversation_state)
-        prompt = self.prompt_template.format(
-            message=message,
-            context=context,
-            resume_data=json.dumps(self.resume_data, indent=2)
-        )
-        
-        response = self.llm.invoke(prompt)
-        
-        return AgentResponse(
-            content=response.content,
-            agent_name=self.name,
-            confidence=self._calculate_confidence(message, response.content),
-            metadata={
-                "model": self.llm.model,
-                "temperature": self.llm.temperature
-            }
-        )
-    
+
     def _build_context(self, state: ConversationState) -> str:
         """Build context from conversation history."""
         if not state.messages:

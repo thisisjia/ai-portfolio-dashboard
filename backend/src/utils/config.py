@@ -7,22 +7,22 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     """Application settings."""
-    
+
     # Database
-    database_url: str = "sqlite:////Users/jia/Personal/resume-dashboard/resume_dashboard.db"
-    
+    database_url: str = os.getenv("DATABASE_URL", "sqlite:///./resume_dashboard.db")
+
     # Authentication
     token_file: str = "data/tokens.json"
-    
+
     # API Keys
     openai_api_key: str = ""
     tavily_api_key: str = ""
-    
+
     # Server
     host: str = "0.0.0.0"
     port: int = 8000
     debug: bool = True
-    
+
     model_config = {"extra": "ignore", "env_file": ".env"}
 
 

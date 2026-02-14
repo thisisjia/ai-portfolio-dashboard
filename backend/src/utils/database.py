@@ -25,8 +25,10 @@ class DatabaseManager:
         # Create database file if it doesn't exist
         if not Path(self.db_path).exists():
             await self._create_schema()
-            await self._insert_sample_data()
-        
+            # NOTE: Sample data insertion commented out - real data already in production DB
+            # Uncomment below line if you need to populate a fresh database with sample data
+            # await self._insert_sample_data()
+
         print(f"✅ Database initialized: {self.db_path}")
     
     async def _create_schema(self):
