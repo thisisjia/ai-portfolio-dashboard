@@ -13,11 +13,12 @@ services:
       - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
       - GROQ_API_KEY=${GROQ_API_KEY}
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://thisisjia.com,http://localhost:3000}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data/resume_dashboard.db}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./backend:/app
+      # Production: only mount data directory for persistence
       - backend_data:/app/data
     restart: unless-stopped
     healthcheck:
@@ -34,12 +35,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=${DOMAIN_URL:-https://thisisjia.com}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     container_name: resume-dashboard-frontend
     ports:
       - "9002:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=${DOMAIN_URL:-https://thisisjia.com}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - NODE_ENV=production
     depends_on:
       - backend
