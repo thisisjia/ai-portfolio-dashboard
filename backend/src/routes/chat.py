@@ -146,57 +146,46 @@ async def send_message_stream(chat_message: ChatMessage):
             # Send initial status
             yield f"data: {json.dumps({'type': 'status', 'message': 'Processing your question...'})}\n\n"
 
-            # Check if chatbot_manager has streaming capability
-            if hasattr(chatbot_manager, 'stream_message'):
-                # Use streaming if available
-                async for chunk in chatbot_manager.stream_message(
-                    message=chat_message.message,
+            # Process message and stream response word by word for typing effect
+            yield f"data: {json.dumps({'type': 'status', 'message': 'Generating response...'})}\n\n"
+
+            result = await chatbot_manager.process_message(
+                message=chat_message.message,
+                session_id=session_id
+            )
+
+            if result["success"]:
+                # Send agent notification
+                yield f"data: {json.dumps({'type': 'agent_change', 'agent': result.get('agent', 'unknown')})}\n\n"
+
+                # Clear status after agent change
+                yield f"data: {json.dumps({'type': 'status', 'message': None})}\n\n"
+
+                # Stream response word by word for typing effect
+                import asyncio
+                response_text = result['response']
+
+                # Stream word by word (faster than char by char, still looks nice)
+                words = response_text.split(' ')
+                for i, word in enumerate(words):
+                    # Add space back except for first word
+                    token_content = word if i == 0 else ' ' + word
+                    yield f"data: {json.dumps({'type': 'token', 'content': token_content})}\n\n"
+
+                    # Small delay for typing effect (adjust speed here)
+                    await asyncio.sleep(0.03)  # 30ms per word
+
+                # Log the chat interaction
+                await db_manager.log_chat(
                     session_id=session_id,
                     token=chat_message.token,
-                    company=chat_message.company
-                ):
-                    yield f"data: {json.dumps(chunk)}\n\n"
-            else:
-                # Fallback: use regular process_message and stream token by token
-                yield f"data: {json.dumps({'type': 'status', 'message': 'Generating response...'})}\n\n"
-
-                result = await chatbot_manager.process_message(
-                    message=chat_message.message,
-                    session_id=session_id
+                    company=chat_message.company,
+                    user_message=chat_message.message,
+                    ai_response=result["response"],
+                    agent_used=result.get("agent", "unknown")
                 )
-
-                if result["success"]:
-                    # Send agent notification
-                    yield f"data: {json.dumps({'type': 'agent_change', 'agent': result.get('agent', 'unknown')})}\n\n"
-
-                    # Clear status after agent change
-                    yield f"data: {json.dumps({'type': 'status', 'message': None})}\n\n"
-
-                    # Stream response token by token for typing effect
-                    import asyncio
-                    response_text = result['response']
-
-                    # Stream word by word (faster than char by char, still looks nice)
-                    words = response_text.split(' ')
-                    for i, word in enumerate(words):
-                        # Add space back except for first word
-                        token_content = word if i == 0 else ' ' + word
-                        yield f"data: {json.dumps({'type': 'token', 'content': token_content})}\n\n"
-
-                        # Small delay for typing effect (adjust speed here)
-                        await asyncio.sleep(0.03)  # 30ms per word
-
-                    # Log the chat interaction
-                    await db_manager.log_chat(
-                        session_id=session_id,
-                        token=chat_message.token,
-                        company=chat_message.company,
-                        user_message=chat_message.message,
-                        ai_response=result["response"],
-                        agent_used=result.get("agent", "unknown")
-                    )
-                else:
-                    yield f"data: {json.dumps({'type': 'error', 'message': result.get('error', 'Failed to generate response')})}\n\n"
+            else:
+                yield f"data: {json.dumps({'type': 'error', 'message': result.get('error', 'Failed to generate response')})}\n\n"
 
             # Send completion signal
             yield f"data: {json.dumps({'type': 'done', 'session_id': session_id})}\n\n"
